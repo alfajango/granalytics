@@ -68,5 +68,20 @@ module Analytics::Aggregate
     def time_key(time, interval)
       interval && ( time.to_i / interval ) * interval
     end
+
+    def data(granularity, start_at, end_at)
+      raise "Not Implemented"
+    end
   end
 end
+
+require 'analytics/aggregates/assignment_event'
+require 'analytics/aggregates/assignment_prediction'
+require 'analytics/aggregates/assignment_user_event'
+require 'analytics/aggregates/course_event'
+require 'analytics/aggregates/course_login'
+require 'analytics/aggregates/course_pageview'
+require 'analytics/aggregates/course_prediction'
+require 'analytics/aggregates/course_user_event'
+require 'analytics/aggregates/course_user_login'
+require 'analytics/aggregates/course_user_pageview'
