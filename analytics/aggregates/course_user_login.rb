@@ -1,3 +1,4 @@
+# TODO: refactor as CourseUserLoginFrequency type Aggregate::Average
 class Analytics::CourseUserLogin
   include Analytics::Aggregate
 

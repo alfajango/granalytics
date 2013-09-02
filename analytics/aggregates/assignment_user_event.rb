@@ -1,3 +1,4 @@
+# TODO: refactor as AssignmentUserEvent of type Aggregate::Count
 class Analytics::AssignmentUserEvent
   include Analytics::Aggregate
 

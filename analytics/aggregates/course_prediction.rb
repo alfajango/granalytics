@@ -1,3 +1,4 @@
+# TODO: refactor as CoursePredictionScore of type Aggregate::Average
 class Analytics::CoursePrediction
   include Analytics::Aggregate
 
