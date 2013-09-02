@@ -23,7 +23,7 @@ class Analytics::AssignmentPrediction
   end
 
   def self.aggregate_scope(event)
-    self.where(assignment_id: event.assignment_id)
+    self.where(assignment_id: event.data['assignment_id'])
   end
 
   def self.upsert_hash(event)

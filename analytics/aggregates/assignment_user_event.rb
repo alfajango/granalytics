@@ -53,7 +53,7 @@ class Analytics::AssignmentUserEvent
   # }
 
   def self.aggregate_scope(event)
-    self.where(assignment_id: event.assignment_id, user_id: event.user_id)
+    self.where(assignment_id: event.data['assignment_id'], user_id: event.user_id)
   end
 
   def self.upsert_hash(event)
