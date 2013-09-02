@@ -1,6 +1,5 @@
 var loadAssignmentEvents = function() {
   $.getJSON('/analytics/assignment_events.json', function(response) {
-    console.log(response);
     var range = response.range,
         series = [],
         dateStart = range[0]*1000,
@@ -20,14 +19,12 @@ var loadAssignmentEvents = function() {
             };
         for (var i = 0, len = range.length; i < len; i++) {
           var x = range[i],
-              y = assignment.events[event].minutely[x] ? assignment.events[event].minutely[x].count : 0;
+              y = assignment.events[event].minutely[x] ? assignment.events[event].minutely[x] : 0;
           s.data.push( y );
         }
         series.push(s);
       }
     }
-
-    console.log('series', series);
 
     $('#events-chart').highcharts({
       title: {
@@ -53,9 +50,6 @@ var loadAssignmentEvents = function() {
               width: 1,
               color: '#808080'
         }]
-      },
-      tooltip: {
-        valueSuffix: '°C'
       },
       legend: {
         layout: 'vertical',
