@@ -75,18 +75,17 @@ class Analytics::AssignmentEvent
 
     keys = range.map { |i| :"events.#{event}.#{granularity}.#{i}"}
 
-    all_data = self.
+    count_data = self.
       in(assignment_id: assignments.keys).
       where('$or' => keys.map{ |k| {k => { '$exists' => true}} }).
       only("assignment_id", *keys).to_a
 
-    events = all_data.collect { |d| d.events.keys }.flatten.uniq
+    count_data.each { |d| d[:name] = assignments[d.assignment_id] }
 
     return {
       range: range,
-      events: events,
-      assignments: assignments,
-      data: all_data
+      key: "events.#{event}.#{granularity}",
+      data: count_data
     }
   end
 end
