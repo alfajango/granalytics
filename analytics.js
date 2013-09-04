@@ -44,7 +44,7 @@ var loadAnalytics = function() {
           series.push(s);
         }
 
-        $this.highcharts({
+        options = {
           title: {
             text: $this.data('title'),
                       x: -20 //center
@@ -77,7 +77,13 @@ var loadAnalytics = function() {
             borderWidth: 0
           },
           series: series
-        });
+        };
+
+        if ($this.data('y-axis-max')) {
+          options.yAxis.max = parseFloat($this.data('y-axis-max'));
+        }
+
+        $this.highcharts(options);
       };
     });
 
