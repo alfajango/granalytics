@@ -1,29 +1,41 @@
+var getKey = function(o, k) {
+  var a = k.split('.');
+  while (a.length) {
+    var n = a.shift();
+    if (n in o) {
+      o = o[n];
+    } else {
+      return;
+    }
+  }
+  return o;
+};
+
 var loadAssignmentEvents = function() {
   $.getJSON('/analytics/assignment_events.json', function(response) {
     var range = response.range,
         series = [],
         dateStart = range[0]*1000,
-        dateInterval = (range[1] - range[0])*1000;
+        dateInterval = (range[1] - range[0])*1000,
+        keys = response.keys;
 
-    for (var a = 0, alen = response.data.length; a < alen; a++) {
-      var assignment = response.data[a],
-          assignmentId = assignment.assignment_id,
-          assignmentName = response.assignments[assignmentId];
-      for (var n = 0, nlen = response.events.length; n < nlen; n++) {
-        var event = response.events[n],
-            s = {
-              name: assignmentName + '-' + event,
-              data: [],
-              pointInterval: dateInterval,
-              pointStart: dateStart
-            };
-        for (var i = 0, len = range.length; i < len; i++) {
-          var x = range[i],
-              y = assignment.events[event].minutely[x] ? assignment.events[event].minutely[x] : 0;
-          s.data.push( y );
-        }
-        series.push(s);
+    for (var i = 0, ilen = response.data.length; i < ilen; i++) {
+      var record = response.data[i],
+          s = {
+            name: record.name,
+            data: [],
+            pointInterval: dateInterval,
+            pointStart: dateStart
+          };
+
+      for (var t = 0, tlen = range.length; t < tlen; t++) {
+        var x = range[t],
+            key = getKey(record, response.key),
+            y = key[x] ? key[x] : 0;
+        s.data.push( y );
       }
+
+      series.push(s);
     }
 
     $('#events-chart').highcharts({
