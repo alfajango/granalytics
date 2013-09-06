@@ -1,6 +1,4 @@
 # TODO: refactor as CoursePageview of type Aggregate::Count
-# TODO: make CoursePageviewByTimeKey to swap nesting of granularity keys and pages,
-#       which makes more sense given how the data will be accessed by time range.
 class Analytics::CoursePageview
   include Analytics::Aggregate
 

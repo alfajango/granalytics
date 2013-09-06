@@ -21,6 +21,8 @@ class Analytics::Event
     when 'pageview'
       Analytics::CoursePageview.incr(event)
       Analytics::CourseUserPageview.incr(event)
+      Analytics::CoursePageviewByTime.incr(event)
+      Analytics::CoursePagePageview.incr(event)
     when 'login'
       Analytics::CourseLogin.incr(event)
       Analytics::CourseUserLogin.incr(event)
