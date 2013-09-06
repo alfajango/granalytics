@@ -22,8 +22,7 @@ var loadAnalytics = function() {
         var range = response.range,
             series = [],
             dateStart = range[0]*1000,
-            dateInterval = (range[1] - range[0])*1000,
-            keys = response.keys;
+            dateInterval = (range[1] - range[0])*1000;
 
         for (var i = 0, ilen = response.data.length; i < ilen; i++) {
           var record = response.data[i],
