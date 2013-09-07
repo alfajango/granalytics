@@ -1,5 +1,5 @@
 module Analytics
 end
 
-require 'analytics/event'
-require 'analytics/aggregate'
+require_dependency 'analytics/event'
+require_dependency 'analytics/aggregate'
