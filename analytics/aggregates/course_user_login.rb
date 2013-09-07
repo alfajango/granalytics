@@ -5,6 +5,9 @@ class Analytics::CourseUserLogin
   field :course_id, type: Integer
   field :user_id, type: Integer
 
+  increment_keys "%{granular_key}.total" => lambda { |event, granularity, interval| self.frequency(interval, event.data['last_login_at'], event.created_at) },
+                 "%{granular_key}.count" => 1
+
   ## No 'all_time' key since frequency for all-time would be 0
   # course_id: 1,
   # user_id: 1,
@@ -58,18 +61,6 @@ class Analytics::CourseUserLogin
 
   def self.aggregate_scope(event)
     self.where(course_id: event.course_id, user_id: event.user_id)
-  end
-
-  def self.upsert_hash(event)
-    upsert_hash = Hash.new.tap do |hash|
-      GRANULARITIES.except(:all_time).each do |granularity, interval|
-        freq = self.frequency(interval, event.data['last_login_at'], event.created_at)
-        granular_key = [granularity, self.time_key(event.created_at, interval)].compact
-
-        hash[ (granular_key + ['total']).join('.') ] = freq
-        hash[ (granular_key + ['count']).join('.') ] = 1
-      end
-    end
   end
 
   def self.frequency(interval, last_time, this_time)

@@ -5,6 +5,9 @@ class Analytics::AssignmentEvent
   field :assignment_id, type: Integer
   field :events, type: Hash
 
+  increment_keys "events.%{event_type}.%{granular_key}" => 1,
+                 "events._all.%{granular_key}" => 1
+
   # assignment_id: 1,
   # events: {
   #   "_all": {
@@ -53,18 +56,6 @@ class Analytics::AssignmentEvent
 
   def self.aggregate_scope(event)
     self.where(assignment_id: event.data['assignment_id'])
-  end
-
-  def self.upsert_hash(event)
-    upsert_hash = Hash.new.tap do |hash|
-      GRANULARITIES.each do |granularity, interval|
-        event_key = ["events", event.event_type]
-        granular_key = [granularity, self.time_key(event.created_at, interval)].compact
-
-        hash[ (event_key + granular_key).join('.') ] = 1
-        hash[ (["events", "_all"] + granular_key).join('.') ] = 1
-      end
-    end
   end
 
   def self.data(granularity, from, to, assignments, event="_all")

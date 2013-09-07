@@ -53,8 +53,30 @@ module Analytics::Aggregate
       raise "Not Implemented"
     end
 
+    # Build the upsert hash for Mongo from the increment_keys and granularities
     def upsert_hash(event)
-      raise "Not Implemented"
+      h = format_hash(event)
+
+      Hash.new.tap do |hash|
+        @increment_keys.each do |key, value|
+          # Set and cache increment value if it's numeric (i.e. static independent of event or granularity)
+          # or if it's a lambda that requires the event instance as the only argument
+          inc_value = value.respond_to?(:call) && value.arity == 1 ? value.call(event) : value
+
+          if key.to_s.include?("%{granular_key}")
+            GRANULARITIES.each do |granularity, interval|
+              # Set the increment value if it's a lambda that requires the event instance and the granularity
+              # and interval as arguments (i.e. it's still a lambda due to having arity != 1 above)
+              inc_value = inc_value.call(event, granularity, interval) if inc_value.respond_to?(:call)
+
+              h[:granular_key] = granular_key(granularity, interval, event.created_at)
+              hash[ sprintf(key, h) ] = inc_value
+            end
+          else
+            hash[ sprintf(key, h) ] = inc_value
+          end
+        end
+      end
     end
 
     # t = Time.now.to_i     #=> 1377704456
@@ -67,6 +89,20 @@ module Analytics::Aggregate
     # key(t, nil)           #=> nil
     def time_key(time, interval)
       interval && ( time.to_i / interval ) * interval
+    end
+
+    # granular_key(:all_time, nil)           #=> "all_time"
+    # granular_key(:minutely, 1.minute.to_i) #=> "minutely.1377704400"
+    def granular_key(granularity, interval, time)
+      [granularity, time_key(time, interval)].compact.join('.')
+    end
+
+    def format_hash(event)
+      event.attributes.symbolize_keys
+    end
+
+    def increment_keys(key_formats)
+      @increment_keys = key_formats
     end
 
     def data(granularity, start_at, end_at)

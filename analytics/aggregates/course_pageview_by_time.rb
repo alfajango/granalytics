@@ -4,6 +4,9 @@ class Analytics::CoursePageviewByTime
 
   field :course_id, type: Integer
 
+  increment_keys "%{granular_key}.pages.%{page}" => 1,
+                 "%{granular_key}.pages._all" => 1
+
   # course_id: 1,
   # all_time: {
   #   pages: {
@@ -64,17 +67,8 @@ class Analytics::CoursePageviewByTime
     self.where(course_id: event.course_id)
   end
 
-  def self.upsert_hash(event)
-    page = event.data['page']
-    upsert_hash = Hash.new.tap do |hash|
-      GRANULARITIES.each do |granularity, interval|
-        page_key = ["pages", page]
-        granular_key = [granularity, self.time_key(event.created_at, interval)].compact
-
-        hash[ (granular_key + page_key).join('.') ] = 1
-        hash[ (granular_key + ["pages", "_all"]).join('.') ] = 1
-      end
-    end
+  def self.format_hash(event)
+    super.merge(:page => event.data['page'])
   end
 
   def self.data(granularity, from, to, course)
