@@ -50,7 +50,7 @@ module Analytics::Aggregate
     end
 
     def aggregate_scope(event)
-      raise "Not Implemented"
+      self.where( Hash[ @scope_by.map{ |k| [k, format_hash(event)[k]] } ] )
     end
 
     # Build the upsert hash for Mongo from the increment_keys and granularities
@@ -97,8 +97,15 @@ module Analytics::Aggregate
       [granularity, time_key(time, interval)].compact.join('.')
     end
 
+    # Auto-populate our format_hash with all attributes from event,
+    # including direct shortcuts to any attribute in the data attribute hash,
+    # but don't allow anything in the data hash to override top-level event attributes.
     def format_hash(event)
-      event.attributes.symbolize_keys
+      event.data.symbolize_keys.merge(event.attributes.symbolize_keys)
+    end
+
+    def scope_by(*keys)
+      @scope_by = keys
     end
 
     def increment_keys(key_formats)

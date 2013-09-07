@@ -5,6 +5,8 @@ class Analytics::AssignmentEvent
   field :assignment_id, type: Integer
   field :events, type: Hash
 
+  scope_by :assignment_id
+
   increment_keys "events.%{event_type}.%{granular_key}" => 1,
                  "events._all.%{granular_key}" => 1
 
@@ -53,10 +55,6 @@ class Analytics::AssignmentEvent
   #     }
   #   }
   # }
-
-  def self.aggregate_scope(event)
-    self.where(assignment_id: event.data['assignment_id'])
-  end
 
   def self.data(granularity, from, to, assignments, event="_all")
     interval = GRANULARITIES[granularity]

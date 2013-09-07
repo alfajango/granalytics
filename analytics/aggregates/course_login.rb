@@ -4,6 +4,8 @@ class Analytics::CourseLogin
 
   field :course_id, type: Integer
 
+  scope_by :course_id
+
   increment_keys "%{granular_key}.total" => lambda { |event, granularity, interval| self.frequency(interval, event.data['last_login_at'], event.created_at) },
                  "%{granular_key}.count" => 1
 
@@ -55,10 +57,6 @@ class Analytics::CourseLogin
   def self.incr(event)
     super
     # TODO: calculage cached average
-  end
-
-  def self.aggregate_scope(event)
-    self.where(course_id: event.course_id)
   end
 
   def self.frequency(interval, last_time, this_time)

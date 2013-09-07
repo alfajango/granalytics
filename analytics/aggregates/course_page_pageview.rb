@@ -5,6 +5,8 @@ class Analytics::CoursePagePageview
   field :course_id, type: Integer
   field :page, type: String
 
+  scope_by :course_id, :page
+
   increment_keys "%{granular_key}" => 1
 
   # course_id: 1,
@@ -28,10 +30,6 @@ class Analytics::CoursePagePageview
   # minutely: {
   #   key: %
   # }
-
-  def self.aggregate_scope(event)
-    self.where(course_id: event.course_id, page: event.data['page'])
-  end
 
   def self.data(granularity, from, to, course)
     interval = GRANULARITIES[granularity]

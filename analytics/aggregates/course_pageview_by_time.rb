@@ -4,6 +4,8 @@ class Analytics::CoursePageviewByTime
 
   field :course_id, type: Integer
 
+  scope_by :course_id
+
   increment_keys "%{granular_key}.pages.%{page}" => 1,
                  "%{granular_key}.pages._all" => 1
 
@@ -62,14 +64,6 @@ class Analytics::CoursePageviewByTime
   #     }
   #   }
   # }
-
-  def self.aggregate_scope(event)
-    self.where(course_id: event.course_id)
-  end
-
-  def self.format_hash(event)
-    super.merge(:page => event.data['page'])
-  end
 
   def self.data(granularity, from, to, course)
     interval = GRANULARITIES[granularity]

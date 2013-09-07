@@ -6,6 +6,8 @@ class Analytics::CourseUserPageview
   field :user_id, type: Integer
   field :pages, type: Hash
 
+  scope_by :course_id, :user_id
+
   increment_keys "pages.%{page}.%{granular_key}" => 1,
                  "pages._all.%{granular_key}" => 1
 
@@ -55,12 +57,4 @@ class Analytics::CourseUserPageview
   #     }
   #   }
   # }
-
-  def self.aggregate_scope(event)
-    self.where(course_id: event.course_id, user_id: event.user_id)
-  end
-
-  def self.format_hash(event)
-    super.merge(:page => event.data['page'])
-  end
 end

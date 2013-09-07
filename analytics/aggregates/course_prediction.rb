@@ -4,6 +4,8 @@ class Analytics::CoursePrediction
 
   field :course_id, type: Integer
 
+  scope_by :course_id
+
   increment_keys "%{granular_key}.total" => lambda { |event| event.data['score'].to_f / event.data['possible'].to_f },
                  "%{granular_key}.count" => 1
 
@@ -24,10 +26,6 @@ class Analytics::CoursePrediction
   def self.incr(event)
     super
     # TODO: Increment cached average
-  end
-
-  def self.aggregate_scope(event)
-    self.where(course_id: event.course_id)
   end
 
   def self.data(granularity, from, to, course)

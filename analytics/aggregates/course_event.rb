@@ -5,6 +5,8 @@ class Analytics::CourseEvent
   field :course_id, type: Integer
   field :events, type: Hash
 
+  scope_by :course_id
+
   increment_keys "events.%{event_type}.%{granular_key}" => 1,
                  "events._all.%{granular_key}" => 1
 
@@ -53,8 +55,4 @@ class Analytics::CourseEvent
   #     }
   #   }
   # }
-
-  def self.aggregate_scope(event)
-    self.where(course_id: event.course_id)
-  end
 end

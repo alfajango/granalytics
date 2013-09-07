@@ -4,6 +4,8 @@ class Analytics::AssignmentPrediction
 
   field :assignment_id, type: Integer
 
+  scope_by :assignment_id
+
   increment_keys "%{granular_key}.total" => lambda{ |event| event.data['score'].to_f / event.data['possible'].to_f },
                  "%{granular_key}.count" => 1
 
@@ -24,9 +26,5 @@ class Analytics::AssignmentPrediction
   def self.incr(event)
     super
     # TODO: Increment cached average
-  end
-
-  def self.aggregate_scope(event)
-    self.where(assignment_id: event.data['assignment_id'])
   end
 end
