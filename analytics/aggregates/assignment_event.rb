@@ -55,26 +55,4 @@ class Analytics::AssignmentEvent
   #     }
   #   }
   # }
-
-  def self.data(granularity, from, to, assignments, event="_all")
-    interval = GRANULARITIES[granularity]
-    start_at = self.time_key(from, interval)
-    end_at = to.to_i
-    range = (start_at..end_at).step(interval)
-
-    keys = range.map { |i| :"events.#{event}.#{granularity}.#{i}"}
-
-    count_data = self.
-      in(assignment_id: assignments.keys).
-      where('$or' => keys.map{ |k| {k => { '$exists' => true}} }).
-      only("assignment_id", *keys).to_a
-
-    count_data.each { |d| d[:name] = assignments[d.assignment_id] }
-
-    return {
-      range: range,
-      key: "events.#{event}.#{granularity}",
-      data: count_data
-    }
-  end
 end

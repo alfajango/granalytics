@@ -55,26 +55,4 @@ class Analytics::CoursePageview
   #     }
   #   }
   # }
-
-  def self.data(granularity, from, to, course, page="_all")
-    interval = GRANULARITIES[granularity]
-    start_at = self.time_key(from, interval)
-    end_at = to.to_i
-    range = (start_at..end_at).step(interval)
-
-    keys = range.map { |i| :"pages.#{page}.#{granularity}.#{i}"}
-
-    count_data = self.
-      in(course_id: course.id).
-      where('$or' => keys.map{ |k| {k => { '$exists' => true}} }).
-      only(*keys).to_a
-
-    count_data.each { |d| d[:name] = course.name }
-
-    return {
-      range: range,
-      key: "pages.#{page}.#{granularity}",
-      data: count_data
-    }
-  end
 end

@@ -6,7 +6,7 @@ class Analytics::AssignmentPrediction
 
   scope_by :assignment_id
 
-  increment_keys "%{granular_key}.total" => lambda{ |event| event.data['score'].to_f / event.data['possible'].to_f },
+  increment_keys "%{granular_key}.total" => lambda{ |event| event.score.to_f / event.possible.to_f },
                  "%{granular_key}.count" => 1
 
   # assignment_id: 1,

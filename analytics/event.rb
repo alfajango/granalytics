@@ -1,13 +1,11 @@
 class Analytics::Event
   include Mongoid::Document
+  include Mongoid::Attributes::Dynamic
 
   field :event_type, type: String
-  field :course_id, type: Integer
-  field :user_id, type: Integer
-  field :data, type: Hash
   field :created_at, type: DateTime
 
-  validates :event_type, :course_id, :user_id, :created_at, presence: true
+  validates :event_type, :created_at, presence: true
 
   after_create do |event|
     case event.event_type

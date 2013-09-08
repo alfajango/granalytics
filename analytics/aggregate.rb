@@ -97,11 +97,9 @@ module Analytics::Aggregate
       [granularity, time_key(time, interval)].compact.join('.')
     end
 
-    # Auto-populate our format_hash with all attributes from event,
-    # including direct shortcuts to any attribute in the data attribute hash,
-    # but don't allow anything in the data hash to override top-level event attributes.
+    # Auto-populate our format_hash with all attributes from event.
     def format_hash(event)
-      event.data.symbolize_keys.merge(event.attributes.symbolize_keys)
+      event.attributes.symbolize_keys
     end
 
     def scope_by(*keys)
@@ -112,8 +110,27 @@ module Analytics::Aggregate
       @increment_keys = key_formats
     end
 
-    def data(granularity, start_at, end_at)
-      raise "Not Implemented"
+    def data(granularity, from, to, scope={}, select_keys={})
+      interval = GRANULARITIES[granularity]
+      start_at = self.time_key(from, interval)
+      end_at = to.to_i
+      range = (start_at..end_at).step(interval)
+
+      data_lookup_keys = @increment_keys.keys.map { |k| sprintf( k, select_keys.merge(granular_key: "{{t}}") ) }.uniq
+
+      keys = range.to_a.product(@increment_keys.keys).map { |i, k| sprintf( k, select_keys.merge(granular_key: "#{granularity}.#{i}") ).to_sym }
+
+      results = self.
+        in(scope).
+        where('$or' => keys.map{ |k| {k => { '$exists' => true}} }).
+        only(*@scope_by, *keys).to_a
+
+      return Analytics::Data.new(
+        granularity,
+        range,
+        data_lookup_keys,
+        results
+      )
     end
   end
 end
