@@ -134,16 +134,3 @@ module Analytics::Aggregate
     end
   end
 end
-
-require_dependency 'analytics/aggregates/assignment_event'
-require_dependency 'analytics/aggregates/assignment_prediction'
-require_dependency 'analytics/aggregates/assignment_user_event'
-require_dependency 'analytics/aggregates/course_event'
-require_dependency 'analytics/aggregates/course_login'
-require_dependency 'analytics/aggregates/course_pageview'
-require_dependency 'analytics/aggregates/course_pageview_by_time'
-require_dependency 'analytics/aggregates/course_page_pageview'
-require_dependency 'analytics/aggregates/course_prediction'
-require_dependency 'analytics/aggregates/course_user_event'
-require_dependency 'analytics/aggregates/course_user_login'
-require_dependency 'analytics/aggregates/course_user_pageview'
