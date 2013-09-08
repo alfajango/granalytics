@@ -1,3 +1,8 @@
+// Access nested values in a hash by passing a string,
+// where nested keys are denoted by a period.
+// E.g.
+//     var myObj = {hi: {there: {whats: 'up'}}};
+//     getKey(myObj, 'hi.there.whats'); //=> 'up'
 var getKey = function(o, k) {
   var a = k.split('.');
   while (a.length) {
@@ -26,9 +31,11 @@ var loadAnalytics = function() {
             dateInterval = (range[1] - range[0])*1000,
             showLegend = false;
 
+        // Loop through results
         for (var i = 0, ilen = response.results.length; i < ilen; i++) {
           var record = response.results[i];
 
+          // Loop through keys for each record (events, count, total, etc.)
           for (var k = 0, klen = keys.length; k < klen; k++) {
             var timeKey = keys[k],
                 recordName = record.name,
@@ -38,10 +45,12 @@ var loadAnalytics = function() {
                   pointStart: dateStart
                 };
 
+            // If record contains multiple aggregate keys, add key to series label
             if (klen > 1) {
               var timeKeyArray = timeKey.split('.'),
                   index = timeKeyArray.indexOf('{{t}}');
 
+              // But don't count the different timestamps as multiple keys
               timeKeyArray.splice(index, 1);
 
               if (timeKeyArray.length) {
@@ -52,10 +61,13 @@ var loadAnalytics = function() {
               }
             }
             s.name = recordName;
+            // Only display legend when more than one series is present
+            // and there are series labels to show.
             if (s.name) {
               showLegend = true;
             }
 
+            // Build the array of plot values
             for (var t = 0, tlen = range.length; t < tlen; t++) {
               var x = range[t],
                   y = getKey(record, timeKey.replace('{{t}}', response.granularity + '.' + x)) || 0;
@@ -66,6 +78,7 @@ var loadAnalytics = function() {
           }
         }
 
+        // Set highcharts defaults from data attributes and response values
         options = {
           title: {
             text: $this.data('title'),
@@ -77,7 +90,7 @@ var loadAnalytics = function() {
           },
           xAxis: {
             type: 'datetime',
-            dateTimeLabelFormats: { // don't display the dummy year
+            dateTimeLabelFormats: { // don't display the year
               minute: '%H:%M'
             }
           },
@@ -122,6 +135,7 @@ $(document).delegate('#refresh', 'click', function(e) {
 });
 
 $(function () {
+  // Show charts in browser's timezone instead of UTC as they are stored
   Highcharts.setOptions({
     global: {
       useUTC: false
