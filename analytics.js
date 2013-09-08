@@ -20,27 +20,50 @@ var loadAnalytics = function() {
 
       if (chartType === 'timeseries') {
         var range = response.range,
+            keys = response.lookup_keys,
             series = [],
             dateStart = range[0]*1000,
-            dateInterval = (range[1] - range[0])*1000;
+            dateInterval = (range[1] - range[0])*1000,
+            showLegend = false;
 
-        for (var i = 0, ilen = response.data.length; i < ilen; i++) {
-          var record = response.data[i],
-              s = {
-                name: record.name,
-                data: [],
-                pointInterval: dateInterval,
-                pointStart: dateStart
-              };
+        for (var i = 0, ilen = response.results.length; i < ilen; i++) {
+          var record = response.results[i];
 
-          for (var t = 0, tlen = range.length; t < tlen; t++) {
-            var x = range[t],
-                key = getKey(record, response.key),
-                y = key[x] ? key[x] : 0;
-            s.data.push( y );
+          for (var k = 0, klen = keys.length; k < klen; k++) {
+            var timeKey = keys[k],
+                recordName = record.name,
+                s = {
+                  data: [],
+                  pointInterval: dateInterval,
+                  pointStart: dateStart
+                };
+
+            if (klen > 1) {
+              var timeKeyArray = timeKey.split('.'),
+                  index = timeKeyArray.indexOf('{{t}}');
+
+              timeKeyArray.splice(index, 1);
+
+              if (timeKeyArray.length) {
+                // Don't know if recordName is defined or not,
+                // and don't want a separator if it's undefined.
+                recordName = recordName ? recordName + ' - ' : '';
+                recordName += timeKeyArray.slice(-1)[0];
+              }
+            }
+            s.name = recordName;
+            if (s.name) {
+              showLegend = true;
+            }
+
+            for (var t = 0, tlen = range.length; t < tlen; t++) {
+              var x = range[t],
+                  y = getKey(record, timeKey.replace('{{t}}', response.granularity + '.' + x)) || 0;
+              s.data.push( y );
+            }
+
+            series.push(s);
           }
-
-          series.push(s);
         }
 
         options = {
@@ -77,6 +100,10 @@ var loadAnalytics = function() {
           },
           series: series
         };
+
+        if (!showLegend) {
+          options.legend.enabled = false;
+        }
 
         if ($this.data('y-axis-max')) {
           options.yAxis.max = parseFloat($this.data('y-axis-max'));
