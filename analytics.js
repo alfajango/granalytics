@@ -111,6 +111,22 @@ var loadAnalytics = function() {
             verticalAlign: 'middle',
             borderWidth: 0
           },
+          plotOptions: {
+            series: {
+              events: {
+                legendItemClick: function(event) {
+                  var selected = this.index;
+                  var allSeries = this.chart.series;
+
+                  for (var i=0, len=allSeries.length; i < len; i++) {
+                    selected == i ? allSeries[i].show() : allSeries[i].hide();
+                  }
+
+                  return false;
+                }
+              }
+            }
+          },
           series: series
         };
 
