@@ -26,4 +26,6 @@ class Analytics::Event
       Analytics::CourseUserLogin.incr(event)
     end
   end
+
+  # TODO: Create methods to export Event collection for backup and clear out persisted collection.
 end

@@ -1,4 +1,5 @@
 module Analytics
+  # TODO: Add configuration to make Analytics::Event persistence optional.
 end
 
 require_dependency 'analytics/event'
