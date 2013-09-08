@@ -8,22 +8,8 @@ class Analytics::Event
   validates :event_type, :created_at, presence: true
 
   after_create do |event|
-    case event.event_type
-    when 'predictor'
-      AssignmentEvent.incr(event)
-      AssignmentPrediction.incr(event)
-      AssignmentUserEvent.incr(event)
-      CourseEvent.incr(event)
-      CoursePrediction.incr(event)
-      CourseUserEvent.incr(event)
-    when 'pageview'
-      CoursePageview.incr(event)
-      CourseUserPageview.incr(event)
-      CoursePageviewByTime.incr(event)
-      CoursePagePageview.incr(event)
-    when 'login'
-      CourseLogin.incr(event)
-      CourseUserLogin.incr(event)
+    if aggregates = Analytics.configuration.event_aggregates.stringify_keys[event.event_type]
+      aggregates.each { |a| a.incr(event) }
     end
   end
 
