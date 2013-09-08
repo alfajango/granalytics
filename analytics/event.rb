@@ -10,20 +10,20 @@ class Analytics::Event
   after_create do |event|
     case event.event_type
     when 'predictor'
-      Analytics::AssignmentEvent.incr(event)
-      Analytics::AssignmentPrediction.incr(event)
-      Analytics::AssignmentUserEvent.incr(event)
-      Analytics::CourseEvent.incr(event)
-      Analytics::CoursePrediction.incr(event)
-      Analytics::CourseUserEvent.incr(event)
+      AssignmentEvent.incr(event)
+      AssignmentPrediction.incr(event)
+      AssignmentUserEvent.incr(event)
+      CourseEvent.incr(event)
+      CoursePrediction.incr(event)
+      CourseUserEvent.incr(event)
     when 'pageview'
-      Analytics::CoursePageview.incr(event)
-      Analytics::CourseUserPageview.incr(event)
-      Analytics::CoursePageviewByTime.incr(event)
-      Analytics::CoursePagePageview.incr(event)
+      CoursePageview.incr(event)
+      CourseUserPageview.incr(event)
+      CoursePageviewByTime.incr(event)
+      CoursePagePageview.incr(event)
     when 'login'
-      Analytics::CourseLogin.incr(event)
-      Analytics::CourseUserLogin.incr(event)
+      CourseLogin.incr(event)
+      CourseUserLogin.incr(event)
     end
   end
 
