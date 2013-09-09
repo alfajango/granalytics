@@ -16,12 +16,31 @@ var getKey = function(o, k) {
   return o;
 };
 
+// Replace mustache-style string variables in text with corresponding property in response object
+// E.g.
+//     response = {name: "you"};
+//     subWithResponse("hi {{ name }}", response); //=> "hi you"
+var subWithResponse = function(text, response) {
+  return text && text.replace(/{{\s*([\w\.]+)\s*}}/g, function (match, capture) { return response[capture];});
+}
+
 var loadAnalytics = function() {
+  var $selects = $('[data-for-chart]');
   $('[data-chart]').each( function() {
     var $this = $(this),
-        chartType = $this.data('chart');
+        chartType = $this.data('chart'),
+        $thisSelects = $selects.filter('[data-for-chart="' + this.id + '"]'),
+        $granularity = $thisSelects.filter('[data-select="granularity"]'),
+        $range = $thisSelects.filter('[data-select="range"]'),
+        requestOptions = {};
 
-    $.getJSON($this.data('url'), function(response) {
+    if ($granularity.length) {
+      requestOptions.granularity = $granularity.val();
+    }
+    if ($range.length) {
+      requestOptions.range = $range.val();
+    }
+    $.getJSON($this.data('url'), requestOptions, function(response) {
 
       if (chartType === 'timeseries') {
         var range = response.range,
@@ -81,12 +100,12 @@ var loadAnalytics = function() {
         // Set highcharts defaults from data attributes and response values
         options = {
           title: {
-            text: $this.data('title'),
-                      x: -20 //center
+            text: subWithResponse($this.data('title'), response),
+            x: -20 //center
           },
           subtitle: {
-            text: $this.data('subtitle'),
-                    x: -20
+            text: subWithResponse($this.data('subtitle'), response),
+            x: -20
           },
           xAxis: {
             type: 'datetime',
@@ -97,12 +116,12 @@ var loadAnalytics = function() {
           yAxis: {
             min: 0,
             title: {
-              text: $this.data('y-axis-label')
+              text: subWithResponse($this.data('y-axis-label'), response)
             },
             plotLines: [{
               value: 0,
-                  width: 1,
-                  color: '#808080'
+              width: 1,
+              color: '#808080'
             }]
           },
           legend: {
@@ -118,9 +137,9 @@ var loadAnalytics = function() {
                 // Allow filtering shown series in chart
                 legendItemClick: function(event) {
                   var selected = this.index,
-                      allSeries = this.chart.series,
-                      state = this.toggleState || 'visible',
-                      othersAction;
+                  allSeries = this.chart.series,
+                  state = this.toggleState || 'visible',
+                  othersAction;
 
                   if (state === 'visible') {
                     othersAction = 'hide';
@@ -138,10 +157,10 @@ var loadAnalytics = function() {
                       allSeries[selected].show();
                     }
 
-                  // Otherwise, toggle between showing only the clicked series or all series
+                    // Otherwise, toggle between showing only the clicked series or all series
                   } else {
                     var i = 0,
-                        len = allSeries.length;
+                    len = allSeries.length;
 
                     // No idea why highcharts takes so long to loop through and hide/show series,
                     // so for now, we need to use setTimeout to show the user something is happening
