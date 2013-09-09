@@ -9,6 +9,22 @@ module Analytics::Aggregate
     :minutely => 1.minute.to_i
   }
 
+  RANGE_SELECTS = {
+    :past_year => lambda { (1.year.ago..Time.now) },
+    :past_month => lambda { (1.month.ago..Time.now) },
+    :past_week => lambda { (1.week.ago..Time.now) },
+    :past_day => lambda { (1.day.ago..Time.now) },
+    :past_hour => lambda { (1.hour.ago..Time.now) },
+  }
+
+  AUTO_RANGE_GRANULARITIES = {
+    :past_year => :monthly,
+    :past_month => :weekly,
+    :past_week => :daily,
+    :past_day => :hourly,
+    :past_hour => :minutely
+  }
+
   def self.included(base)
     base.extend(ClassMethods)
     base.send(:include, Mongoid::Document)
@@ -110,10 +126,24 @@ module Analytics::Aggregate
       @increment_keys = key_formats
     end
 
-    def data(granularity, from, to, scope={}, select_keys={})
+    # Can be called in following ways:
+    # MyAggregate.data
+    # MyAggregate.data(:minutely, 15.minutes.ago..Time.now)
+    # MyAggregate.data(:minutely, :past_day)
+    # MyAggregate.data(nil, :past_day)
+    def data(granularity=nil, range=nil, scope={}, select_keys={})
+      range = self.default_range if range.nil?
+
+      if range.is_a?(Symbol)
+        granularity ||= self.default_granularity(range)
+        range = RANGE_SELECTS[range].call
+      end
+
+      granularity ||= self.default_granularity
       interval = GRANULARITIES[granularity]
-      start_at = self.time_key(from, interval)
-      end_at = to.to_i
+
+      start_at = self.time_key(range.first, interval)
+      end_at = range.last.to_i
       range = (start_at..end_at).step(interval)
 
       data_lookup_keys = @increment_keys.keys.map { |k| sprintf( k, select_keys.merge(granular_key: "{{t}}") ) }.uniq
@@ -131,6 +161,22 @@ module Analytics::Aggregate
         data_lookup_keys,
         results
       )
+    end
+
+    def set_default_granularity(granularity)
+      @default_granularity = granularity
+    end
+
+    def set_default_range(range_symbol)
+      @default_range = range_symbol
+    end
+
+    def default_granularity(range_symbol=nil)
+      @default_granularity || AUTO_RANGE_GRANULARITIES[range_symbol || default_range]
+    end
+
+    def default_range
+      @default_range ||= :past_day
     end
   end
 end
