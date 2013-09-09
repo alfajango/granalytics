@@ -114,12 +114,54 @@ var loadAnalytics = function() {
           plotOptions: {
             series: {
               events: {
-                legendItemClick: function(event) {
-                  var selected = this.index;
-                  var allSeries = this.chart.series;
 
-                  for (var i=0, len=allSeries.length; i < len; i++) {
-                    selected == i ? allSeries[i].show() : allSeries[i].hide();
+                // Allow filtering shown series in chart
+                legendItemClick: function(event) {
+                  var selected = this.index,
+                      allSeries = this.chart.series,
+                      state = this.toggleState || 'visible',
+                      othersAction;
+
+                  if (state === 'visible') {
+                    othersAction = 'hide';
+                    this.toggleState = 'solo';
+                  } else {
+                    othersAction = 'show';
+                    this.toggleState = 'visible';
+                  }
+
+                  // Hold shift, ctrl, or cmd to toggle just the clicked series
+                  if (event.browserEvent.metaKey || event.browserEvent.shiftKey || event.browserEvent.ctrlKey) {
+                    if (state === 'solo') {
+                      allSeries[selected].hide();
+                    } else {
+                      allSeries[selected].show();
+                    }
+
+                  // Otherwise, toggle between showing only the clicked series or all series
+                  } else {
+                    var i = 0,
+                        len = allSeries.length;
+
+                    // No idea why highcharts takes so long to loop through and hide/show series,
+                    // so for now, we need to use setTimeout to show the user something is happening
+                    // and not lock up the UI.
+                    function loopSeries() {
+                      if (selected === i) {
+                        allSeries[selected].show();
+                      } else {
+                        allSeries[i][othersAction]();
+                        delete allSeries[i]['toggle'];
+                      }
+
+                      i++;
+
+                      if (i < len) {
+                        setTimeout(loopSeries, 0.5);
+                      }
+                    }
+
+                    loopSeries();
                   }
 
                   return false;
