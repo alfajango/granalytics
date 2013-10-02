@@ -95,6 +95,58 @@ module Analytics::Aggregate
       end
     end
 
+    def decr(event)
+      # First decrement
+      hash = downsert_hash(event)
+      scope = self.aggregate_scope(event)
+      #STDOUT.puts "  Decrementing #{self.name} #{scope.selector}"
+
+      record = scope.find_and_modify({'$inc' => hash}, {:new => true})
+
+      # Then, remove if values empty (this is the opposite of the 'upsert' => 'true' in the #incr method)
+      unset_keys = {}
+      hash.keys.each do |key|
+
+        # Remove the key if new value is zero or NaN
+        if record[key] == 0 || (record[key].is_a?(Float) && record[key].nan?)
+          record.unset(key)
+
+          key_levels = key.split('.')
+
+          # Then delete each parent key of nested hash if it is now empty after unset
+          loop do
+            # Start by popping once since key was unset above
+            last_key = key_levels.pop
+
+            break if key_levels.empty?
+
+            next_key = key_levels.join('.')
+
+            unset_keys[next_key] ? unset_keys[next_key] << last_key : unset_keys[next_key] = [last_key]
+            value_excluding_unset_keys = record[next_key].reject{ |k,v| unset_keys[next_key].include?(k) }
+
+            if value_excluding_unset_keys.empty?
+              record.unset(next_key)
+            else
+              break
+            end
+          end
+        end
+
+      end
+      #STDOUT.puts "  Unset keys: #{unset_keys}" if unset_keys.any?
+      record
+    end
+
+    # Create the inverse of the upsert_hash
+    def downsert_hash(event)
+      Hash.new.tap do |hash|
+        upsert_hash(event).each do |key, value|
+          hash[ key ] = value * -1
+        end
+      end
+    end
+
     # t = Time.now.to_i     #=> 1377704456
     # key(t, 1.year.to_i)   #=> 1356976800
     # key(t, 1.month.to_i)  #=> 1376352000
