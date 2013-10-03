@@ -2,6 +2,7 @@ var $selects,
     defaultChartOptions;
 
 defaultChartOptions = {
+  chart: {},
   title: {
     x: -20 //center
   },
@@ -109,6 +110,10 @@ var ChartOptions = function($el, response) {
     return typeof(el.name != 'undefined');
   });
   this.legend.enabled = showLegend;
+
+  if (this.series.length == 1) {
+    this.chart.type = 'area';
+  }
 
   if ($el.data('y-axis-max')) {
     this.yAxis.max = parseFloat($el.data('y-axis-max'));
