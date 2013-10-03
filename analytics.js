@@ -1,3 +1,5 @@
+var $selects;
+
 // Access nested values in a hash by passing a string,
 // where nested keys are denoted by a period.
 // E.g.
@@ -24,24 +26,33 @@ var subWithResponse = function(text, response) {
   return text && text.replace(/{{\s*([\w\.]+)\s*}}/g, function (match, capture) { return response[capture];});
 }
 
-var loadAnalytics = function() {
-  var $selects = $('[data-for-chart]');
-  $('[data-chart]').each( function() {
-    var $this = $(this),
-        chartType = $this.data('chart'),
-        $thisSelects = $selects.filter('[data-for-chart="' + this.id + '"]'),
-        $granularity = $thisSelects.filter('[data-select="granularity"]'),
-        $range = $thisSelects.filter('[data-select="range"]'),
-        requestOptions = {};
+var refreshAnalytics = function() {
+  var $this = $(this),
+      chartType = $this.data('chart'),
+      $thisSelects = $selects.filter('[data-for-chart="' + this.id + '"]'),
+      $granularity = $thisSelects.filter('[data-select="granularity"]'),
+      $range = $thisSelects.filter('[data-select="range"]'),
+      requestOptions = {},
+      $refresh = $('[data-refresh-chart="' + this.id + '"]');
 
-    if ($granularity.length) {
-      requestOptions.granularity = $granularity.val();
-    }
-    if ($range.length) {
-      requestOptions.range = $range.val();
-    }
-    $.getJSON($this.data('url'), requestOptions, function(response) {
+  if ($granularity.length) {
+    requestOptions.granularity = $granularity.val();
+  }
+  if ($range.length) {
+    requestOptions.range = $range.val();
+  }
 
+  $.ajax({
+    dataType: "json",
+    url: $this.data('url'),
+    data: requestOptions,
+    beforeSend: function() {
+      $refresh.html('Loading...').removeClass('analytics-refresh-now').addClass('analytics-loading');
+    },
+    complete: function() {
+      $refresh.html('Refresh').removeClass('analytics-loading');
+    },
+    success: function(response) {
       if (chartType === 'timeseries') {
         var range = response.range,
             keys = response.lookup_keys,
@@ -200,16 +211,28 @@ var loadAnalytics = function() {
         }
 
         $this.highcharts(options);
-      };
-    });
+      }
+      $refresh.html('Refresh').removeClass('analytics-loading');
+    }
+  });
+}
 
+var loadAnalytics = function() {
+  $('[data-chart]').each( function() {
+    refreshAnalytics.call(this);
   });
 };
 
-$(document).delegate('#refresh', 'click', function(e) {
-  loadAnalytics();
-  e.preventDefault();
-});
+$(document)
+  .delegate('[data-refresh-chart]', 'click', function(e) {
+    var chart = $(this).data('refresh-chart');
+    refreshAnalytics.call( document.getElementById(chart) );
+    e.preventDefault();
+  })
+  .delegate('[data-for-chart]', 'change', function() {
+    var chart = $(this).data('for-chart');
+    $('[data-refresh-chart="' + chart + '"]').addClass('analytics-refresh-now');
+  });
 
 $(function () {
   // Show charts in browser's timezone instead of UTC as they are stored
@@ -218,5 +241,6 @@ $(function () {
       useUTC: false
     }
   });
+  $selects = $('[data-for-chart]');
   loadAnalytics();
 });
