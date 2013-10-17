@@ -61,8 +61,14 @@ module Analytics::Aggregate
   # }
 
   module ClassMethods
+    # Decorate event for aggregate prior to incrementing
+    def decorate_event(event)
+      event
+    end
+
     def incr(event)
-      self.aggregate_scope(event).find_and_modify({'$inc' => upsert_hash(event)}, {'upsert' => 'true', :new => true})
+      decorated_event = decorate_event(event)
+      self.aggregate_scope(event).find_and_modify({'$inc' => upsert_hash(decorated_event)}, {'upsert' => 'true', :new => true})
     end
 
     def aggregate_scope(event)
