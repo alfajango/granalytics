@@ -300,7 +300,6 @@ var timeSummarySeries = function(response) {
     }
     series.push(s);
   }
-  console.log(series);
   return series;
 };
 
