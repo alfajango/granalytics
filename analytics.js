@@ -343,9 +343,12 @@ window.refreshAnalytics = function() {
       if (chartType === 'timeseries') {
         $this.highcharts( new TimeLineOptions($this, response) );
       } else if (chartType === 'timeseries-table') {
-        $this.removeData('dynatable');
+        if ($this.data('dynatable')) {
+          $this.siblings('.dynatable-pagination-links,.dynatable-record-count').remove();
+          $this.data('dynatable').sortsHeaders.removeAll();
+          $this.removeData('dynatable');
+        }
         $this.find('tbody').html('');
-        $this.siblings('.dynatable-pagination-links,.dynatable-record-count').remove();
         $this.dynatable( new TimeSummaryOptions($this, response) );
       }
       $refresh.html('Refresh').removeClass('analytics-loading');
