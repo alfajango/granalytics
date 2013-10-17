@@ -305,13 +305,14 @@ var timeSummarySeries = function(response) {
 };
 
 // Request analytics data for this chart element via ajax and bind callbacks
-var refreshAnalytics = function() {
+window.refreshAnalytics = function() {
   var $this = $(this),
       chartType = $this.data('chart'),
       $thisSelects = $selects.filter('[data-for-chart="' + this.id + '"]'),
       $granularity = $thisSelects.filter('[data-select="granularity"]'),
       $range = $thisSelects.filter('[data-select="range"]'),
       requestOptions = {},
+      urlData = $this.data('url-data'),
       $refresh = $('[data-refresh-chart="' + this.id + '"]');
 
   if ($granularity.length) {
@@ -319,6 +320,13 @@ var refreshAnalytics = function() {
   }
   if ($range.length) {
     requestOptions.range = $range.val();
+  }
+
+  if (urlData) {
+    if (typeof urlData !== 'string') {
+      urlData = $.param(urlData);
+    }
+    requestOptions = [$.param(requestOptions), urlData].join('&');
   }
 
   $.ajax({
@@ -348,7 +356,10 @@ var refreshAnalytics = function() {
 // Loop through [data-chart] elements and call refreshAnalytics function for each
 var loadAnalytics = function() {
   $('[data-chart]').each( function() {
-    refreshAnalytics.call(this);
+    var delayLoad = this.getAttribute('data-delay-load');
+    if (!delayLoad && delayLoad !== "") {
+      refreshAnalytics.call(this);
+    }
   });
 };
 
