@@ -89,10 +89,10 @@ module Analytics::Aggregate
             GRANULARITIES.each do |granularity, interval|
               # Set the increment value if it's a lambda that requires the event instance and the granularity
               # and interval as arguments (i.e. it's still a lambda due to having arity != 1 above)
-              inc_value = inc_value.call(event, granularity, interval) if inc_value.respond_to?(:call)
+              inc_result = inc_value.respond_to?(:call) ? inc_value.call(event, granularity, interval) : inc_value
 
               h[:granular_key] = granular_key(granularity, interval, event.created_at)
-              hash[ sprintf(key, h) ] = inc_value
+              hash[ sprintf(key, h) ] = inc_result
             end
           else
             hash[ sprintf(key, h) ] = inc_value
