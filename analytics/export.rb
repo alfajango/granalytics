@@ -10,8 +10,13 @@ module Analytics::Export
     self.data = loaded_data
   end
 
+  # No op
+  def filter(rows)
+    rows
+  end
+
   def records
-    data[self.class.rows]
+    self.filter data[self.class.rows]
   end
 
   # {
