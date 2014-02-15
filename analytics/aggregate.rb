@@ -190,23 +190,32 @@ module Analytics::Aggregate
     # MyAggregate.data(:minutely, :past_day)
     # MyAggregate.data(nil, :past_day)
     def data(granularity=nil, range=nil, scope={}, select_keys={})
-      range = self.default_range if range.nil?
+      unless granularity == :all_time
+        range = self.default_range if range.nil?
 
-      if range.is_a?(Symbol)
-        granularity ||= self.default_granularity(range)
-        range = RANGE_SELECTS[range].call
+        if range.is_a?(Symbol)
+          granularity ||= self.default_granularity(range)
+          range = RANGE_SELECTS[range].call
+        end
       end
 
       granularity ||= self.default_granularity
       interval = GRANULARITIES[granularity]
 
-      start_at = self.time_key(range.first, interval)
-      end_at = range.last.to_i
-      range = (start_at..end_at).step(interval)
-
+      # Replace "%{granular_key}" with "{{t}}" placeholder for front-end data consumption
       data_lookup_keys = @increment_keys.keys.map { |k| sprintf( k, select_keys.merge(granular_key: "{{t}}") ) }.uniq
 
-      keys = range.to_a.product(@increment_keys.keys).map { |i, k| sprintf( k, select_keys.merge(granular_key: "#{granularity}.#{i}") ).to_sym }
+      if range
+        start_at = self.time_key(range.first, interval)
+        end_at = range.last.to_i
+        range = (start_at..end_at).step(interval)
+
+        # Replace "%{granular_key}" with e.g. "monthly.1381536000" for each date-key in range and convert to symbol :"monthly.1381536000"
+        # for each combination of range array with @increment_keys.keys array.
+        keys = range.to_a.product(@increment_keys.keys).map { |i, k| sprintf( k, select_keys.merge(granular_key: "#{granularity}.#{i}") ).to_sym }
+      else
+        keys = @increment_keys.keys.map { |k| sprintf( k, select_keys.merge(granular_key: granularity) ).to_sym }
+      end
 
       results = self.
         in(scope).
