@@ -32,7 +32,7 @@ module Analytics::Export
           elapsed = Benchmark.realtime do
             puts "    => column #{column.inspect}, value #{value.inspect}"
             h[column] = self.records.each_with_index.map do |record, i|
-              print "\r       record #{i} of #{total_records} (#{(i*100.0/total_records).round}%)" if i % 5 == 0
+              print "\r       record #{i} of #{total_records} (#{(i*100.0/total_records).round}%)" if i % 5 == 0 || i == (total_records - 1)
               if record.respond_to? value
                 record.send(value)
               else
