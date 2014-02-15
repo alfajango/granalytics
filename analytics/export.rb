@@ -16,7 +16,7 @@ module Analytics::Export
   end
 
   def records
-    self.filter data[self.class.rows]
+    @records ||= self.filter data[self.class.rows]
   end
 
   # {
@@ -24,16 +24,26 @@ module Analytics::Export
   #   :role => ["admin", "owner", "owner"], ...
   # }
   def schema_records
+    puts "  => generating schema records"
     Hash.new { |hash, key| hash[key] = [] }.tap do |h|
-      self.class.schema.each do |column, value|
-        h[column] = self.records.each_with_index.map do |record, i|
-          if record.respond_to? value
-            record.send(value)
-          else
-            self.send(value, record, i)
+      total_records = self.records.size
+      all_elapsed = Benchmark.realtime do
+        self.class.schema.each do |column, value|
+          elapsed = Benchmark.realtime do
+            puts "    => column #{column.inspect}, value #{value.inspect}"
+            h[column] = self.records.each_with_index.map do |record, i|
+              print "\r       record #{i} of #{total_records} (#{(i*100.0/total_records).round}%)" if i % 5 == 0
+              if record.respond_to? value
+                record.send(value)
+              else
+                self.send(value, record, i)
+              end
+            end
           end
+          puts "\n       Done. Elapsed time: #{elapsed} seconds"
         end
       end
+      puts "     Done. Elapsed time: #{all_elapsed} seconds"
     end
   end
 
