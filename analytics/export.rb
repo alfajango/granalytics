@@ -49,7 +49,7 @@ module Analytics::Export
 
   def generate_csv(path, file_name=nil)
     unless File.exists?(path) && File.directory?(path)
-      Dir.mkdir(path)
+      FileUtils.mkdir_p(path)
     end
     file_name ||= "#{self.class.name.underscore}.csv"
 
