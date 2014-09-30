@@ -1,4 +1,4 @@
-class Analytics::Event
+class Granalytics::Event
   include Mongoid::Document
   include Mongoid::Attributes::Dynamic
 
@@ -8,7 +8,7 @@ class Analytics::Event
   validates :event_type, :created_at, presence: true
 
   after_create do |event|
-    if aggregates = Analytics.configuration.event_aggregates.stringify_keys[event.event_type]
+    if aggregates = Granalytics.configuration.event_aggregates.stringify_keys[event.event_type]
       aggregates.each { |a| a.incr(event) }
     end
   end

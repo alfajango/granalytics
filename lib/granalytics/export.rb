@@ -1,4 +1,4 @@
-module Analytics::Export
+module Granalytics::Export
   def self.included(base)
     base.extend(ClassMethods)
     base.class_eval do

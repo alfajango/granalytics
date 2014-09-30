@@ -1,4 +1,4 @@
-module Analytics::Aggregate
+module Granalytics::Aggregate
   GRANULARITIES = {
     :all_time => nil,
     :yearly => 1.year.to_i,
@@ -222,7 +222,7 @@ module Analytics::Aggregate
         where('$or' => keys.map{ |k| {k => { '$exists' => true}} }).
         only(*@scope_by, *keys).to_a
 
-      return Analytics::Data.new(
+      return Granalytics::Data.new(
         granularity,
         range,
         data_lookup_keys,

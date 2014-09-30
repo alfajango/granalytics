@@ -1,4 +1,4 @@
-class Analytics::Data < Hash
+class Granalytics::Data < Hash
 
   def initialize(granularity, range, lookup_keys, results)
     self[:granularity] = granularity
