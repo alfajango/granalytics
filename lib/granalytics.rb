@@ -1,3 +1,4 @@
+require "mongoid"
 require "granalytics/version"
 
 module Granalytics
