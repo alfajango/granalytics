@@ -192,6 +192,7 @@ module Granalytics::Aggregate
     def data(granularity=nil, range=nil, scope={}, select_keys={})
       unless granularity == :all_time
         range = self.default_range if range.nil?
+        range = range.to_sym if range.is_a?(String)
 
         if range.is_a?(Symbol)
           granularity ||= self.default_granularity(range)
@@ -216,6 +217,7 @@ module Granalytics::Aggregate
       else
         keys = @increment_keys.keys.map { |k| sprintf( k, select_keys.merge(granular_key: granularity) ).to_sym }
       end
+      keys << "_id"
 
       results = self.
         in(scope).

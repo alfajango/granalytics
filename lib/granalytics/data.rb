@@ -4,7 +4,7 @@ class Granalytics::Data < Hash
     self[:granularity] = granularity
     self[:range] = range
     self[:lookup_keys] = lookup_keys
-    self[:results] = results
+    self[:results] = results.collect(&:attributes)
   end
 
   def decorate!(&block)
